@@ -18,7 +18,14 @@ app.get('/api', (req, res) => {
 })
 
 import userRoutes from './routes/user.routes';
-app.use('/api/users', userRoutes);
+app.use('/api/user', userRoutes);
+
+import trackRoutes from './routes/track.routes';
+app.use('/api/track', trackRoutes);
+
+
+
+
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);

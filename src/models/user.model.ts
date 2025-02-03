@@ -20,6 +20,7 @@ export const User = new EntitySchema({
         },
         mobile_number: {
             type: "varchar",
+            unique: true
         },
         createdAt: {
             type: "timestamp",
