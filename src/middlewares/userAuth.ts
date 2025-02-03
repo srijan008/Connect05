@@ -7,34 +7,43 @@ const JWT_SECRET: string = process.env.JWT_SECRET || "secret";
 declare global {
   namespace Express {
     interface Request {
-      user?: any;
+      uid?: any;
+      admin?:any;
     }
   }
 }
 
 function authenticateUser(req: Request, res: Response, next: NextFunction) {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  const token = req.headers["authorization"];
+  // const token = authHeader && authHeader.split(" ")[1];
+
+  // console.log(token);
+  
 
   if (!token) {
-    return res.status(401).json({ message: "Access denied. No token provided." });
+     res.status(401).json({ message: "Access denied. No token provided." });
+     return;
   }
 
-  jwt.verify(token, JWT_SECRET, async (err: VerifyErrors | null, user: any) => {
+  jwt.verify(token as string, JWT_SECRET, async (err: VerifyErrors | null, user: any) => {
     if (err) {
-      return res.status(403).json({ message: "Invalid or expired token" });
+      res.status(403).json({ message: "Invalid or expired token" });
+      return;
     }
 
     
     const dbUser = 1; // Example value, replace with actual DB query
 
     if (!dbUser) {
-      return res.status(403).json({ message: "Logged-in user not available" });
-    } else if (dbUser > 1) {
-      return res.status(403).json({ message: "Conflict in user data" });
+       res.status(403).json({ message: "Logged-in user not available" });
+       return;
+      } else if (dbUser > 1) {
+        res.status(403).json({ message: "Conflict in user data" });
+        return;
     }
 
-    req.user = user;
+
+    req.uid = user.uid;
     next();
   });
 }
