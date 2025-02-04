@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import authenticateUser from './middlewares/userAuth';
+import { signUp,login } from './controllers/user.controller';
 
 
 const app = express();
@@ -17,14 +19,17 @@ app.get('/api', (req, res) => {
     res.send('Server is running');
 })
 
+app.post('/api/user/signUp', signUp)
+app.post('/api/user/login', login)
+
 import userRoutes from './routes/user.routes';
-app.use('/api/user', userRoutes);
+app.use('/api/user',authenticateUser,userRoutes);
 
 import trackRoutes from './routes/track.routes';
-app.use('/api/track', trackRoutes);
+app.use('/api/track',authenticateUser, trackRoutes);
 
-
-
+import areaRoutes from './routes/area.routes';
+app.use('/api/area',authenticateUser, areaRoutes);
 
 
 app.listen(PORT, () => {

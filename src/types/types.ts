@@ -18,4 +18,13 @@ export interface Track extends track {
     updatedAt: Date;
 }
 
+export type area = {
+    tid: number;
+    lat: number;
+    lon: number;
+}
+
+export interface Area extends area {
+    slNo: number;
+}
  
