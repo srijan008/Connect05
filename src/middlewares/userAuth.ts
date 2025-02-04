@@ -1,5 +1,8 @@
 import jwt, { VerifyErrors } from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const JWT_SECRET: string = process.env.JWT_SECRET || "secret";
 
@@ -9,6 +12,9 @@ declare global {
     interface Request {
       uid?: any;
       admin?:any;
+      files?: {
+        photo?: Express.Multer.File[]; // Assuming multiple files are uploaded under "photo"
+    };
     }
   }
 }
@@ -17,7 +23,6 @@ function authenticateUser(req: Request, res: Response, next: NextFunction) {
   const token = req.headers["authorization"];
   // const token = authHeader && authHeader.split(" ")[1];
 
-  // console.log(token);
   
 
   if (!token) {
@@ -25,8 +30,11 @@ function authenticateUser(req: Request, res: Response, next: NextFunction) {
      return;
   }
 
+  
+
   jwt.verify(token as string, JWT_SECRET, async (err: VerifyErrors | null, user: any) => {
     if (err) {
+      console.log(err);
       res.status(403).json({ message: "Invalid or expired token" });
       return;
     }

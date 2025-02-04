@@ -1,4 +1,4 @@
-import { trackRepository} from "../db/schemas.db";
+import { areaRepository, trackRepository} from "../db/schemas.db";
 import { Request, Response } from "express";
 import { track,Track } from "../types/types";
 import { DeleteResult } from "typeorm";
@@ -137,6 +137,7 @@ const updateTrack = async (req: Request, res: Response) => {
 
 }
 
+// will also delete the area associated with the track
 const deleteTrack = async (req: Request, res: Response) => {
     const tid = Number(req.params.tid);
     const uid = Number(req.uid); // Ensure uid is a number
@@ -147,6 +148,7 @@ const deleteTrack = async (req: Request, res: Response) => {
     }
 
     try {
+
         const deleteResult: DeleteResult = await trackRepository.delete({ tid, uid });
 
         if (deleteResult.affected === 0) {

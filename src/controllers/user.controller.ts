@@ -1,8 +1,13 @@
-import { userRepository } from "../db/schemas.db";
+import { userRepository, favListRepository, listingRepository } from "../db/schemas.db";
 import jwt, { SignOptions } from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { Request, Response } from "express";
 import { User } from "../types/types";
+import ErrorHandler from "../utils/errorHandling";
+import { DeleteResult } from "typeorm";
+import { ListingSchema } from "../utils/zodSchemas.utils";
+import { compressImage, uploadToS3 } from "../utils/image.utils";
+import fs from "fs"
 
 const Salt: number = Number(process.env.SALT) || 10; // Ensure it's a number
 const jwtSecret: string = process.env.JWT_SECRET ?? "secret"; // Use `??` for fallback
@@ -10,7 +15,7 @@ const expiresIn: string = process.env.JWT_EXPIRES_IN ?? "1h";
 
 
 // Signup
-async function signUp(req: Request, res: Response){
+async function signUp(req: Request, res: Response) {
   try {
     const { name, email, password, mobile_number } = req.body;
 
@@ -52,16 +57,16 @@ async function signUp(req: Request, res: Response){
     console.error("Signup Error:", error);
     res.status(500).send("Internal Server Error");
     return;
-    
+
   }
 }
 
 // Login
-async function login(req: Request, res: Response){
+async function login(req: Request, res: Response) {
 
   const { mobile_number, password } = req.body;
 
-  if(!mobile_number || !password){
+  if (!mobile_number || !password) {
     res.status(400).send("Please enter all fields");
     return;
   }
@@ -70,14 +75,14 @@ async function login(req: Request, res: Response){
 
     const user = await userRepository.findOne({ where: { mobile_number } });
 
-    if(!user){
+    if (!user) {
       res.status(404).send("User not found");
       return;
     }
 
     const isMatch = await bcrypt.compare(password, user?.password as string);
 
-    if(!isMatch){
+    if (!isMatch) {
       res.status(401).send("Invalid Credentials");
       return;
     }
@@ -87,20 +92,20 @@ async function login(req: Request, res: Response){
     res.status(200).json({
       message: `${user?.name} logged in successfully`,
       token,
-   
+
     });
-    
+
   } catch (error) {
     // console.error("Login Error:", error);
     res.status(500).send("Internal Server Error");
     return;
-    
+
   }
 
 }
 
 // get User
-async function getUser(req: Request, res: Response){
+async function getUser(req: Request, res: Response) {
   try {
     const user = await userRepository.findOne({ where: { uid: req.uid } });
 
@@ -115,19 +120,20 @@ async function getUser(req: Request, res: Response){
     res.status(500).send("Internal Server Error");
     return
   }
-  
+
 }
 
 //change password
-async function changePassword(req:Request,res:Response) {
+async function changePassword(req: Request, res: Response) {
 
   const { oldPassword, newPassword } = req.body;
 
-  const uid  = req.uid;  
+  const uid = req.uid;
 
-  if(!oldPassword || !newPassword){
+  if (!oldPassword || !newPassword) {
     res.status(400).send("Please enter all fields");
-    return ;  }
+    return;
+  }
 
 
   try {
@@ -135,41 +141,41 @@ async function changePassword(req:Request,res:Response) {
     const user = await userRepository.findOne({ where: { uid } });
 
     const isMatch = await bcrypt.compare(oldPassword, user?.password as string);
-    
 
-    if(!isMatch){
+
+    if (!isMatch) {
       res.status(401).send("Invalid Credentials");
       return;
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, Salt);
 
-    const updatedUser = await userRepository.update(uid,{
-      password:hashedPassword
+    const updatedUser = await userRepository.update(uid, {
+      password: hashedPassword
     });
 
-    
 
-    if(!updatedUser.affected || updatedUser.affected === 0){
+
+    if (!updatedUser.affected || updatedUser.affected === 0) {
       res.status(500).send("Error in updating password");
       return;
     }
 
     res.status(200).send("Password updated successfully");
     return;
-    
+
   } catch (error) {
     console.error("Change Password Error:", error);
     res.status(500).send("Internal Server Error");
     return;
   }
-  
+
 }
 
 
 // Update User
 async function updateUser(req: Request, res: Response) {
-  const { name , email, mobile_number} = req.body;
+  const { name, email, mobile_number } = req.body;
 
   if (!name && !email && !mobile_number) {
     res.status(400).send("At least one field is required");
@@ -177,9 +183,10 @@ async function updateUser(req: Request, res: Response) {
   }
 
   const uid = req.uid;
+  const file = req.file;
 
   console.log(uid);
-  
+
 
   try {
     const user = await userRepository.findOne({ where: { uid } });
@@ -187,6 +194,11 @@ async function updateUser(req: Request, res: Response) {
     if (!user) {
       res.status(404).send("User not found");
       return;
+    }
+
+    if (file) {
+      const uploadResult = await uploadToS3(file);
+      if (uploadResult) { user.profilePhoto = uploadResult; }
     }
 
     const updatedUser = await userRepository.update(uid, {
@@ -203,13 +215,226 @@ async function updateUser(req: Request, res: Response) {
     res.status(200).send("User updated successfully");
     return;
 
-    
+
   } catch (error) {
     console.error("Update User Error:", error);
     res.status(500).send("Internal Server Error");
     return;
+
+  }
+}
+
+// add Listing
+async function createListing(req: Request, res: Response) {
+  try {
+
+    const uid = req.uid
+    const listingData = ListingSchema.parse(req.body);
+    const files = req.files?.photo;
+
+
+
+    const listing = await listingRepository.save({ ...listingData, uid });
+
+    if (!listing) {
+      res.status(400).json({ message: "Failed to add listing" })
+      return;
+    }
+
+    if (files && files?.length > 0) {
+      if (!listing.image) { listing.image = [] };
+      // Map over files to create an array of promises
+      const uploadToAws = files.map(async (file) => {
+        try {
+          const uploadResult = await uploadToS3(file);
+          if (uploadResult && uploadResult !== null) {
+            listing.image?.push(uploadResult);
+          }
+          // Remove the local file after successful upload
+        } catch (error) {
+          console.error(`Error uploading file ${file.filename}:`, error);
+        }
+      });
+      // Wait for all uploads to complete
+      await Promise.all(uploadToAws);
+    }
+
+    const savedListing = await listingRepository.save(listing);
+    if (!savedListing) {
+      res.status(400).json({ message: "Failed to add listing" })
+      return;
+    }
+
+    res.status(200).json({ message: "Listing added successfully", listing: savedListing })
+    return;
+
+
+
+  } catch (error) {
+    ErrorHandler.handle(error, res);
+  }
+
+}
+
+async function updateListing(req: Request, res: Response) {
+  try {
+    const uid = req.uid
+    const lstId = Number(req.params.lstId);
+    const files = req.files?.photo;
+
+
+    const updatedListingData = req.body;
+
+    if (Object.keys(updatedListingData).length === 0) {
+      res.status(400).json({ message: "Please provide data to update" })
+      return;
+    }
+
+    const listing = await listingRepository.findOne({ where: { lstId, uid } });
+
+    if (!listing) {
+      res.status(400).json({ message: "Listing not found" })
+      return;
+    }
+
+    Object.keys(updatedListingData).forEach((key) => {
+      if (updatedListingData[key] === "") updatedListingData[key] = null;
+    });
+
+    Object.assign(listing, updatedListingData);
+   
+    if (files && files?.length > 0) {
+      if (!listing.image) { listing.image = [] };
+      // Map over files to create an array of promises
+      const uploadToAws = files.map(async (file) => {
+        try {
+          const uploadResult = await uploadToS3(file);
+          if (uploadResult && uploadResult !== null) {
+            (listing.image as string[])?.push(uploadResult);
+          }
+          // Remove the local file after successful upload
+        } catch (error) {
+          console.error(`Error uploading file ${file.filename}:`, error);
+        }
+      });
+      // Wait for all uploads to complete
+      await Promise.all(uploadToAws);
+    }
+
+    const updatedListing = await listingRepository.save(listing);
+
+    if (!updatedListing) {
+      res.status(400).json({ message: "Failed to update listing" })
+      return;
+    }
+
+    res.status(200).json({ message: "Listing updated successfully",listing: updatedListing })
+    return;
+
+
+  } catch (error) {
+    ErrorHandler.handle(error, res)
+
+  }
+}
+
+async function getAllListing(req: Request, res: Response) {
+  try {
+    const uid = req.uid;
+    const allListings = await listingRepository.find({ where: { uid } });
+
+    if(allListings.length === 0){
+      res.status(400).json({message:"No listing found"})
+      return;
+    }
+
+    res.status(200).json({message:"Listings Found successfully" ,allListings})
+  } catch (error) 
+  {
+    ErrorHandler.handle(error, res)
     
   }
 }
 
-export { signUp,login,getUser,changePassword,updateUser }
+// will also all favEntry with this lstId
+async function deleteListing(req: Request, res: Response) {
+  try {
+    const uid = req.uid
+    const lstId = req.params.lstId;
+
+    const deleteFav = await favListRepository.delete({ lstId, uid });
+
+    const deleteListing: DeleteResult = await listingRepository.delete({ lstId, uid });
+
+
+    if (deleteListing.affected === 0) {
+      res.status(400).json({ message: "Unable to delete the listing" })
+      return;
+    }
+
+    res.status(200).json({ message: "Listing deleted successfully" })
+
+
+  } catch (error) {
+    ErrorHandler.handle(error, res)
+
+  }
+}
+
+// add Fav
+async function addFav(req: Request, res: Response) {
+  try {
+    const uid = req.uid;
+
+    const { tid, lstId } = req.body;
+    if (!lstId) {
+      res.status(400).json({ message: "Please provide lstId" })
+      return;
+    }
+
+    const favData = {
+      tid: tid,
+      lstId: lstId,
+      uid: uid
+    }
+
+    const fav = await favListRepository.save(favData);
+
+    if (!fav) {
+      res.status(400).json({ message: "Failed to add fav" })
+      return;
+
+    }
+    res.status(200).json({ message: "Fav added successfully" })
+    return;
+
+  } catch (error) {
+    ErrorHandler.handle(error, res)
+
+
+  }
+}
+
+// delete Fav
+async function deleteFav(req: Request, res: Response) {
+  try {
+    const uid = req.uid;
+    const { slNo } = req.params;
+    const deleteFav: DeleteResult = await favListRepository.delete({ slNo, uid });
+
+    if (deleteFav.affected === 0) {
+      res.status(400).json({ message: "Failed to delete fav" })
+      return;
+    }
+
+    res.status(200).json({ message: "Fav deleted successfully" })
+    return;
+
+
+  } catch (error) {
+    ErrorHandler.handle(error, res)
+  }
+}
+
+
+export { signUp, login, getUser, changePassword, updateUser, addFav, deleteFav, createListing, updateListing, getAllListing,deleteListing }

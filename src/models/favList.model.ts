@@ -9,8 +9,12 @@ const FavList = new EntitySchema({
             type:"int",
             generated:true
         },
+        uid:{
+            type:"int",
+        },
         tid:{
-            type:"int"
+            type:"int",
+            nullable:true
         },
         lstId:{
             type:"int"
