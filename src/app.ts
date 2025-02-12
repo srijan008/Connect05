@@ -35,6 +35,7 @@ app.use('/api/area', authenticateUser, areaRoutes);
 import listingRoutes from './routes/listings.routes';
 app.use('/api/listings', listingRoutes);
 
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+app.listen(4001, '0.0.0.0', () => {
+    console.log('Server is running on http://0.0.0.0:4001');
 });
+
