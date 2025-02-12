@@ -31,7 +31,7 @@ interface ListingItem {
 const API_SOURCES = [
     { 
         name: "NoBroker",
-        url: (city: string, locality: string) => `https://0841-35-227-2-130.ngrok-free.app/nobroker?city=${city}&locality=${locality}&page=1`,
+        url: (city: string, locality: string) => `https://4390-34-83-75-115.ngrok-free.app/nobroker?city=${city}&locality=${locality}&page=1`,
         mapData: (response: any, city: string, locality: string): ListingItem[] => response.data && Array.isArray(response.data.data) ? response.data.data.map((item: any) => ({
             uid: null,
             city,
@@ -59,7 +59,7 @@ const API_SOURCES = [
     },
     { 
         name: "Housing",
-        url: (city: string, locality: string) => `https://0841-35-227-2-130.ngrok-free.app/housing?city=${city}&locality=${locality}&page=1`,
+        url: (city: string, locality: string) => `https://4390-34-83-75-115.ngrok-free.app/housing?city=${city}&locality=${locality}&page=1`,
         mapData: (response: any, city: string, locality: string): ListingItem[] => response.data && Array.isArray(response.data.data) ? response.data.data.map((item: any) => ({
             uid: null,
             city,
@@ -87,7 +87,7 @@ const API_SOURCES = [
     },
     { 
         name: "SquareYard",
-        url: (city: string, locality: string) => `https://0841-35-227-2-130.ngrok-free.app/squareyard?city=${city}&locality=${locality}&page=1`,
+        url: (city: string, locality: string) => `https://4390-34-83-75-115.ngrok-free.app/squareyard?city=${city}&locality=${locality}&page=1`,
         mapData: (response: any, city: string, locality: string): ListingItem[] => response.data && Array.isArray(response.data.data) ? response.data.data.map((item: any) => ({
             uid: null,
             city,
