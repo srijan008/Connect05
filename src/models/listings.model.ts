@@ -9,8 +9,11 @@ const Listing = new EntitySchema({
             type: "int",
             generated: true
         },
-        uid: {
-            type: "int"
+        city: {
+            type: "varchar"
+        },
+        locality: {
+            type: "varchar"
         },
         name: {
             type: "varchar"
@@ -25,13 +28,16 @@ const Listing = new EntitySchema({
             type: "varchar"
         },
         perSqftPrice: {
-            type: "varchar"
+            type: "varchar",
+            nullable: true
         },
         emi: {
-            type: "varchar"
+            type: "varchar",
+            nullable: true
         },
         builtUp: {
-            type: "varchar"
+            type: "varchar",
+            nullable: true
         },
         facing: {
             type: "varchar",
@@ -51,7 +57,34 @@ const Listing = new EntitySchema({
         },
         image: {
             type: "simple-array",
-            nullable: true,
+            nullable: true
+        },
+        latitude: {
+            type: "varchar",
+            nullable: true
+        },
+        longitude: {
+            type: "varchar",
+            nullable: true
+        },
+        possessionStatus: {
+            type: "varchar",
+            nullable: true
+        },
+        possessionDate: {
+            type: "varchar",
+            nullable: true
+        },
+        agentName: {
+            type: "varchar",
+            nullable: true
+        },
+        description: {
+            type: "text",
+            nullable: true
+        },
+        source: {
+            type: "varchar"
         },
         createdAt: {
             type: "timestamp",
