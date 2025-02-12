@@ -10,7 +10,7 @@ dotenv.config();
 app.use(express.json());
 app.use(cors());
 
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 app.get('/', (req, res) => {
     res.send('Server is running');
@@ -35,7 +35,7 @@ app.use('/api/area', authenticateUser, areaRoutes);
 import listingRoutes from './routes/listings.routes';
 app.use('/api/listings', listingRoutes);
 
-app.listen(4001, '0.0.0.0', () => {
-    console.log('Server is running on http://0.0.0.0:4001');
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server is running on http://0.0.0.0:${PORT}`);
 });
 
