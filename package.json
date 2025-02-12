@@ -4,10 +4,11 @@
   "description": "",
   "main": "dist/app.js",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/app.js",
-    "dev": "nodemon --ext ts --exec ts-node src/app.ts",
-    "test": "node dist/app.js"
+  "build": "tsc",
+  "build:azure": "npm run build",
+  "start": "npm run build && node dist/app.js",
+  "dev": "nodemon --ext ts --exec ts-node src/app.ts",
+  "test": "node dist/app.js"
   },
   "author": "Connect",
   "license": "ISC",
