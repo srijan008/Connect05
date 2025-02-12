@@ -1,0 +1,22 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.trackRepository = exports.favListRepository = exports.listingRepository = exports.areaRepository = exports.userRepository = void 0;
+const dbConnection_db_1 = require("./dbConnection.db");
+const user_model_1 = __importDefault(require("../models/user.model"));
+const area_model_1 = __importDefault(require("../models/area.model"));
+const listings_model_1 = __importDefault(require("../models/listings.model"));
+const favList_model_1 = __importDefault(require("../models/favList.model"));
+const track_model_1 = __importDefault(require("../models/track.model"));
+const userRepository = dbConnection_db_1.AppDataSource.getRepository(user_model_1.default);
+exports.userRepository = userRepository;
+const areaRepository = dbConnection_db_1.AppDataSource.getRepository(area_model_1.default);
+exports.areaRepository = areaRepository;
+const listingRepository = dbConnection_db_1.AppDataSource.getRepository(listings_model_1.default);
+exports.listingRepository = listingRepository;
+const favListRepository = dbConnection_db_1.AppDataSource.getRepository(favList_model_1.default);
+exports.favListRepository = favListRepository;
+const trackRepository = dbConnection_db_1.AppDataSource.getRepository(track_model_1.default);
+exports.trackRepository = trackRepository;
