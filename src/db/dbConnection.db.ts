@@ -6,7 +6,8 @@ import Area from "../models/area.model";
 import FavList from "../models/favList.model";
 import Listing from "../models/listings.model";
 import Track from "../models/track.model";
-import Waitlist from "../models/waitlist.model"; 
+import Waitlist from "../models/waitlist.model";
+import ShortList from "../models/shortList.model";   
 
 dotenv.config();
 
@@ -17,7 +18,7 @@ const AppDataSource = new DataSource({
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
-  entities: [User, Area, FavList, Listing, Track, Waitlist],
+  entities: [User, Area, FavList, Listing, Track, Waitlist,ShortList],
   synchronize: process.env.DBSYNC === "true",
   logging: process.env.DBSYNC === "true",
 });
