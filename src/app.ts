@@ -31,6 +31,11 @@ app.use('/api/area', authenticateUser, areaRoutes);
 import listingRoutes from './routes/listings.routes';
 app.use('/api/listings', listingRoutes);
 
+import waitlistRoutes from './routes/waitlist.routes';
+app.use('/api/waitlist', waitlistRoutes);
+
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+export default app;
