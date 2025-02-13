@@ -1,6 +1,6 @@
 import express from 'express';
 import { upload } from "../middlewares/multer.middelware"
-import {getUser, changePassword, updateUser, createListing, updateListing, getAllListing, deleteListing, addFav, deleteFav } from '../controllers/user.controller';
+import {getUser, changePassword, updateUser, createListing, updateListing, getAllListing, deleteListing, addFav, deleteFav,addto_shortlist,getShortlisted_listing } from '../controllers/user.controller';
 
 const router = express.Router();
 
@@ -17,5 +17,8 @@ router.delete('/deleteListing/:lstId',  deleteListing)
 
 router.post("/addFav", addFav);
 router.delete("/deleteFav/:slNo", deleteFav);
+
+router.post("/addto_shortlist", addto_shortlist);
+router.get("/getShortlisted_listing", getShortlisted_listing);
 
 export default router;
