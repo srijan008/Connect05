@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authenticateUser from './middlewares/userAuth';
 import { signUp, login } from './controllers/user.controller';
+import { updateCounter } from './utils/counterUpdater';
 
 const app = express();
 dotenv.config();
@@ -34,8 +35,13 @@ app.use('/api/listings', listingRoutes);
 import waitlistRoutes from './routes/waitlist.routes';
 app.use('/api/waitlist', waitlistRoutes);
 
+import counterRoutes from './routes/counter.routes';
+app.use('/api/counter', counterRoutes);
+
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+setInterval(updateCounter, 60000);
 
 export default app;

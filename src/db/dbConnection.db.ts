@@ -7,31 +7,31 @@ import FavList from "../models/favList.model";
 import Listing from "../models/listings.model";
 import Track from "../models/track.model";
 import Waitlist from "../models/waitlist.model";
-import ShortList from "../models/shortList.model";   
+import Counter from "../models/counter.model";
 
 dotenv.config();
 
 const AppDataSource = new DataSource({
-  type: "postgres",
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT),
-  username: process.env.DB_USERNAME,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_DATABASE,
-  entities: [User, Area, FavList, Listing, Track, Waitlist,ShortList],
-  synchronize: process.env.DBSYNC === "true",
-  logging: process.env.DBSYNC === "true",
+    type: "postgres",
+    host: process.env.DB_HOST,
+    port: Number(process.env.DB_PORT),
+    username: process.env.DB_USERNAME,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_DATABASE,
+    entities: [User, Area, FavList, Listing, Track, Waitlist, Counter],
+    synchronize: process.env.DBSYNC === "true",
+    logging: process.env.DBSYNC === "true",
 });
 
 AppDataSource.initialize()
-  .then(() => {
-    console.log("Database Connected!");
-    if (process.env.DBSYNC === "true") {
-      console.log("Sync Completed...");
-      console.log("Shutting Down...");
-      process.exit();
-    }
-  })
-  .catch((error) => console.log("Database connection error:", error));
+    .then(() => {
+        console.log("Database Connected!");
+        if (process.env.DBSYNC === "true") {
+            console.log("Sync Completed...");
+            console.log("Shutting Down...");
+            process.exit();
+        }
+    })
+    .catch((error) => console.log("Database connection error:", error));
 
 export { AppDataSource };
