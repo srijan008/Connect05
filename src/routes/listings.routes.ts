@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
-import { getListings, updateListings } from "../controllers/listing.controller";
+import { getListings, updateListings,createListingFromJson } from "../controllers/listing.controller";
+import { upload } from "../middlewares/multer.middelware"
 
 const router = express.Router();
 
@@ -10,5 +11,7 @@ router.get("/", async (req: Request, res: Response) => {
 router.put("/", async (req: Request, res: Response) => {
     await updateListings(req, res);
 });
+
+router.post("/createListingFromJson",upload.single("listingFile"),createListingFromJson);
 
 export default router;
