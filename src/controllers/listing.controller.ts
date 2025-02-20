@@ -2,9 +2,11 @@ import { Request, Response } from "express";
 import { listingRepository } from "../db/schemas.db";
 import axios from "axios";
 import ErrorHandler from "../utils/errorHandling";
+import fs from "fs";
+
 
 interface ListingItem {
-    uid: number | null;
+    uid?: number | null;
     city: string;
     locality: string;
     name: string;
@@ -19,19 +21,21 @@ interface ListingItem {
     bathrooms?: number | null;
     parking?: string | null;
     image: string[];
-    latitude: string;
-    longitude: string;
+    latitude: string | null;
+    longitude: string | null;
     possessionStatus?: string | null;
     possessionDate?: string | null;
     agentName?: string | null;
     description?: string | null;
     source: string;
 }
-
+interface HousingData {
+    data: ListingItem[];
+}
 const API_SOURCES = [
     { 
         name: "NoBroker",
-        url: (city: string, locality: string) => `https://4390-34-83-75-115.ngrok-free.app/nobroker?city=${city}&locality=${locality}&page=1`,
+        url: (city: string, locality: string) => `https://0841-35-227-2-130.ngrok-free.app/nobroker?city=${city}&locality=${locality}&page=1`,
         mapData: (response: any, city: string, locality: string): ListingItem[] => response.data && Array.isArray(response.data.data) ? response.data.data.map((item: any) => ({
             uid: null,
             city,
@@ -59,7 +63,7 @@ const API_SOURCES = [
     },
     { 
         name: "Housing",
-        url: (city: string, locality: string) => `https://4390-34-83-75-115.ngrok-free.app/housing?city=${city}&locality=${locality}&page=1`,
+        url: (city: string, locality: string) => `https://0841-35-227-2-130.ngrok-free.app/housing?city=${city}&locality=${locality}&page=1`,
         mapData: (response: any, city: string, locality: string): ListingItem[] => response.data && Array.isArray(response.data.data) ? response.data.data.map((item: any) => ({
             uid: null,
             city,
@@ -87,7 +91,7 @@ const API_SOURCES = [
     },
     { 
         name: "SquareYard",
-        url: (city: string, locality: string) => `https://4390-34-83-75-115.ngrok-free.app/squareyard?city=${city}&locality=${locality}&page=1`,
+        url: (city: string, locality: string) => `https://0841-35-227-2-130.ngrok-free.app/squareyard?city=${city}&locality=${locality}&page=1`,
         mapData: (response: any, city: string, locality: string): ListingItem[] => response.data && Array.isArray(response.data.data) ? response.data.data.map((item: any) => ({
             uid: null,
             city,
@@ -176,3 +180,39 @@ export const updateListings = async (req: Request, res: Response): Promise<void>
         ErrorHandler.handle(error, res);
     }
 };
+export const createListingFromJson = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const file = req.file;
+
+        if (!file) {
+            res.status(400).json({ error: "File not found" });
+            return;
+        }
+
+        const housingData : HousingData = require(file.path);
+
+        // Assuming listingRepository is already defined and connected to your database
+        const housing = await Promise.all(
+            housingData.data.map(async (item: ListingItem) => {
+                return listingRepository.save(item);
+            })
+        );
+        
+        // Delete the file after processing
+        fs.unlinkSync(file.path);
+
+      if(housing.length > 0){
+        res.json({ message: "Listings added successfully",Total_Listing_added:housing.length});
+        return ;}
+
+
+        res.status(400).json({ error: "Error adding listings" });
+        return;
+
+        
+    } catch (error) {
+        ErrorHandler.handle(error, res);
+        return;
+    }
+};
+

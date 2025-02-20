@@ -1,13 +1,14 @@
-import { userRepository, favListRepository, listingRepository } from "../db/schemas.db";
+import { userRepository, favListRepository, listingRepository,ShortListRepository } from "../db/schemas.db";
 import jwt, { SignOptions } from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { Request, Response } from "express";
 import { User } from "../types/types";
 import ErrorHandler from "../utils/errorHandling";
-import { DeleteResult } from "typeorm";
+import { DeleteResult, In } from "typeorm";
 import { ListingSchema } from "../utils/zodSchemas.utils";
 import { compressImage, uploadToS3 } from "../utils/image.utils";
-import fs from "fs"
+import { all } from "axios";
+
 
 const Salt: number = Number(process.env.SALT) || 10;
 const jwtSecret: string = process.env.JWT_SECRET ?? "secret";
@@ -307,4 +308,63 @@ async function deleteFav(req: Request, res: Response) {
   }
 }
 
-export { signUp, login, getUser, changePassword, updateUser, addFav, deleteFav, createListing, updateListing, getAllListing, deleteListing };
+const addto_shortlist = async (req: Request, res: Response): Promise<void> => {
+  const uid = req.uid;
+  try {
+    const { lstId } = req.body;
+    if (!lstId) {
+      res.status(400).json({ message: "Please provide lstId" });
+      return;
+    }
+    const listing = await listingRepository.findOne({ where: { lstId } });
+
+    if (!listing) {
+      res.status(400).json({ message: "Listing not found" });
+      return;
+    }
+
+    const shortListData = {
+      lstId: lstId,
+      uid: uid
+    };
+    const shortList = await ShortListRepository.save(shortListData);
+    if (!shortList) {
+      res.status(400).json({ message: "Failed to add shortlist" });
+      return;
+    }
+    res.status(200).json({ message: "Shortlist added successfully" });
+    return;
+  } catch (error) {
+    ErrorHandler.handle(error, res);
+  }
+}
+
+const getShortlisted_listing = async (req: Request, res: Response): Promise<void> => {
+  const uid = req.uid;
+  try {
+    const shortListedListing = await ShortListRepository.find({where:{uid}});
+
+    if(shortListedListing.length === 0){
+      res.status(400).json({message:"No shortlisted listing found"});
+      return;
+    }
+
+    const lstIds = shortListedListing.map((listing) => listing.lstId);
+
+    const allListings = await listingRepository.find({where:{lstId:In(lstIds)}})
+
+    if(allListings.length === 0){
+      res.status(400).json({message:"Shortlisted listing not found"});
+      return;
+    }
+
+    res.status(200).json({message:"Shortlisted listing found successfully",
+      Total:allListings.length,allListings});
+    return;
+    
+  } catch (error) {
+    ErrorHandler.handle(error, res);
+  }
+}
+
+export { signUp, login, getUser, changePassword, updateUser, addFav, deleteFav, createListing, updateListing, getAllListing, deleteListing,addto_shortlist,getShortlisted_listing };
