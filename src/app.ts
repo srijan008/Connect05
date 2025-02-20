@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authenticateUser from './middlewares/userAuth';
 import { signUp, login } from './controllers/user.controller';
+import { updateCounter } from './utils/counterUpdater';
 
 const app = express();
 dotenv.config();
@@ -10,11 +11,7 @@ dotenv.config();
 app.use(express.json());
 app.use(cors());
 
-const PORT = Number(process.env.PORT) || 3000;
-
-app.get('/', (req, res) => {
-    res.send('Server is running');
-});
+const PORT = process.env.PORT || 3000;
 
 app.get('/api', (req, res) => {
     res.send('Server is running');
@@ -35,7 +32,16 @@ app.use('/api/area', authenticateUser, areaRoutes);
 import listingRoutes from './routes/listings.routes';
 app.use('/api/listings', listingRoutes);
 
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server is running on http://0.0.0.0:${PORT}`);
+import waitlistRoutes from './routes/waitlist.routes';
+app.use('/api/waitlist', waitlistRoutes);
+
+import counterRoutes from './routes/counter.routes';
+app.use('/api/counter', counterRoutes);
+
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
 });
 
+setInterval(updateCounter, 60000);
+
+export default app;
