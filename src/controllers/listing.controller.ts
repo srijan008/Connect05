@@ -216,3 +216,58 @@ export const createListingFromJson = async (req: Request, res: Response): Promis
     }
 };
 
+
+export const getListings_withselectedfield = async (req: Request, res: Response): Promise<void> => {
+    const { city, locality } = req.query;
+    
+    if (!city || !locality) {
+        res.status(400).json({ error: "City and locality are required" });
+        return;
+    }
+    try {
+        const existingListings = await listingRepository.find({ where: { city: city, locality: locality },select:{
+            lstId:true,
+            price:true,
+            name:true,
+            description:true,
+            image:true,
+            facing:true,
+            builtUp:true,
+            emi:true,
+            perSqftPrice:true,
+            parking:true,
+            
+            latitude:true,
+            longitude:true,
+        } });
+        if (existingListings.length > 0) {
+            res.status(200).json({messgage:"Listings Found Successfully",total:existingListings.length,listings:existingListings});
+            return;
+        }
+        res.status(400).json({ error: "No data found" });
+       return 
+    } catch (error) {
+        ErrorHandler.handle(error, res);
+    }
+};
+
+export const getListingById = async (req: Request, res: Response): Promise<void> => {
+    const { lstId } = req.params;
+    if (!lstId) {
+        res.status(400).json({ error: "Id is required" });
+        return;
+    }
+    try {
+        const Listing = await listingRepository.find({ where: { lstId}});
+        if (Listing.length > 0) {
+            res.status(200).json({message:"Listing details found",Listing});
+            return;
+        }
+        
+        res.status(401).json("No data found");
+        return;
+    } catch (error) {
+        ErrorHandler.handle(error, res);
+    }
+};
+
