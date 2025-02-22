@@ -1,7 +1,10 @@
 import express, { Request, Response } from "express";
 import { getListings, updateListings,createListingFromJson } from "../controllers/listing.controller";
 import { upload } from "../middlewares/multer.middelware"
+<<<<<<< HEAD
 import { getListingById,getListings_withselectedfield } from "../controllers/listing.controller";
+=======
+>>>>>>> 3fbf848443f62d918ade28d68c8625c71f8e9684
 
 const router = express.Router();
 
@@ -15,6 +18,7 @@ router.put("/", async (req: Request, res: Response) => {
 
 router.get("/getListings_withselectedfield",getListings_withselectedfield)
 router.get("/getListingbyId/:lstId",getListingById)
+
 router.post("/createListingFromJson",upload.single("listingFile"),createListingFromJson);
 
 export default router;

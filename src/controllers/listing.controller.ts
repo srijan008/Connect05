@@ -270,4 +270,3 @@ export const getListingById = async (req: Request, res: Response): Promise<void>
         ErrorHandler.handle(error, res);
     }
 };
-
