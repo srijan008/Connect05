@@ -42,9 +42,13 @@ build/Release
 node_modules/
 jspm_packages/
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 dist/
 >>>>>>> 997896bcdac70fb718fbfed00987e1da8dc07bdb
+=======
+dist/
+>>>>>>> 3fbf848443f62d918ade28d68c8625c71f8e9684
 public/temp/
 # Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
@@ -94,9 +98,13 @@ out
 # Nuxt.js build / generate output
 .nuxt
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 dist
 >>>>>>> 997896bcdac70fb718fbfed00987e1da8dc07bdb
+=======
+dist
+>>>>>>> 3fbf848443f62d918ade28d68c8625c71f8e9684
 
 # Gatsby files
 .cache/
@@ -112,9 +120,12 @@ dist
 .cache
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 >>>>>>> 997896bcdac70fb718fbfed00987e1da8dc07bdb
+=======
+>>>>>>> 3fbf848443f62d918ade28d68c8625c71f8e9684
 # Docusaurus cache and generated files
 .docusaurus
 
