@@ -1,10 +1,8 @@
 import express, { Request, Response } from "express";
 import { getListings, updateListings,createListingFromJson } from "../controllers/listing.controller";
 import { upload } from "../middlewares/multer.middelware"
-<<<<<<< HEAD
 import { getListingById,getListings_withselectedfield } from "../controllers/listing.controller";
-=======
->>>>>>> 3fbf848443f62d918ade28d68c8625c71f8e9684
+
 
 const router = express.Router();
 
