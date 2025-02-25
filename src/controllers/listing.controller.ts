@@ -298,6 +298,53 @@ export const getListings_Shortlisted = async (req: Request, res: Response): Prom
     }
 };
 
+export const getListings_Agent = async (req: Request, res: Response): Promise<void> => {
+    const { city, locality } = req.query;
+
+    if (!city || !locality) {
+        res.status(400).json({ error: "City and locality are required" });
+        return;
+    }
+
+    function getRandomInt(a: number, b: number): number {
+        return Math.floor(Math.random() * (b - a + 1)) + a;
+    }
+
+    try {
+        const random: number = getRandomInt(3,10);
+
+        const agentListing = await listingRepository
+            .createQueryBuilder("listing")
+            .where("listing.city = :city AND listing.locality = :locality", { city, locality })
+            .select([
+                "listing.lstId",
+                "listing.price",
+                "listing.name",
+                "listing.description",
+                "listing.image",
+                "listing.facing",
+                "listing.builtUp",
+                "listing.emi",
+                "listing.perSqftPrice",
+                "listing.parking",
+                "listing.latitude",
+                "listing.longitude",
+            ])
+            .orderBy("RANDOM()")
+            .take(random) // Taking a random number of listings
+            .getMany();
+
+            if (agentListing.length > 0) {
+                res.status(200).json({messgage:"Listings Found Successfully",total:agentListing.length,listings:agentListing});
+                return;
+            }
+            res.status(400).json({ error: "No data found" });
+            return 
+    } catch (error) {
+        ErrorHandler.handle(error, res);
+    }
+};
+
 
 export const getListingById = async (req: Request, res: Response): Promise<void> => {
     const { lstId } = req.params;
