@@ -4,6 +4,9 @@ import axios from "axios";
 import ErrorHandler from "../utils/errorHandling";
 import fs from "fs";
 
+function getRandomInt(a: number, b: number): number {
+    return Math.floor(Math.random() * (b - a + 1)) + a;
+}
 
 interface ListingItem {
     uid?: number | null;
@@ -224,22 +227,11 @@ export const getListings_withselectedfield = async (req: Request, res: Response)
         res.status(400).json({ error: "City and locality are required" });
         return;
     }
+    const random: number = getRandomInt(10,50);
+
     try {
-        const existingListings = await listingRepository.find({ where: { city: city, locality: locality },select:{
-            lstId:true,
-            price:true,
-            name:true,
-            description:true,
-            image:true,
-            facing:true,
-            builtUp:true,
-            emi:true,
-            perSqftPrice:true,
-            parking:true,
-            
-            latitude:true,
-            longitude:true,
-        },take:40 });
+        const existingListings = await listingRepository.find({ where: { city: city, locality: locality
+        },take:random });
         if (existingListings.length > 0) {
             res.status(200).json({messgage:"Listings Found Successfully",total:existingListings.length,listings:existingListings});
             return;
@@ -259,9 +251,7 @@ export const getListings_Shortlisted = async (req: Request, res: Response): Prom
         return;
     }
 
-    function getRandomInt(a: number, b: number): number {
-        return Math.floor(Math.random() * (b - a + 1)) + a;
-    }
+   
 
     try {
         const random: number = getRandomInt(7, 45);
@@ -269,20 +259,6 @@ export const getListings_Shortlisted = async (req: Request, res: Response): Prom
         const existingListings = await listingRepository
             .createQueryBuilder("listing")
             .where("listing.city = :city AND listing.locality = :locality", { city, locality })
-            .select([
-                "listing.lstId",
-                "listing.price",
-                "listing.name",
-                "listing.description",
-                "listing.image",
-                "listing.facing",
-                "listing.builtUp",
-                "listing.emi",
-                "listing.perSqftPrice",
-                "listing.parking",
-                "listing.latitude",
-                "listing.longitude",
-            ])
             .orderBy("RANDOM()")
             .take(random) // Taking a random number of listings
             .getMany();
@@ -306,30 +282,13 @@ export const getListings_Agent = async (req: Request, res: Response): Promise<vo
         return;
     }
 
-    function getRandomInt(a: number, b: number): number {
-        return Math.floor(Math.random() * (b - a + 1)) + a;
-    }
-
+ 
     try {
         const random: number = getRandomInt(3,10);
 
         const agentListing = await listingRepository
             .createQueryBuilder("listing")
             .where("listing.city = :city AND listing.locality = :locality", { city, locality })
-            .select([
-                "listing.lstId",
-                "listing.price",
-                "listing.name",
-                "listing.description",
-                "listing.image",
-                "listing.facing",
-                "listing.builtUp",
-                "listing.emi",
-                "listing.perSqftPrice",
-                "listing.parking",
-                "listing.latitude",
-                "listing.longitude",
-            ])
             .orderBy("RANDOM()")
             .take(random) // Taking a random number of listings
             .getMany();
