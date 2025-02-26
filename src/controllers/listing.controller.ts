@@ -3,6 +3,7 @@ import { listingRepository } from "../db/schemas.db";
 import axios from "axios";
 import ErrorHandler from "../utils/errorHandling";
 import fs from "fs";
+import { Not,IsNull } from "typeorm";
 
 function getRandomInt(a: number, b: number): number {
     return Math.floor(Math.random() * (b - a + 1)) + a;
@@ -230,8 +231,15 @@ export const getListings_withselectedfield = async (req: Request, res: Response)
     const random: number = getRandomInt(10,50);
 
     try {
-        const existingListings = await listingRepository.find({ where: { city: city, locality: locality
-        },take:random });
+        const existingListings = await listingRepository.find({
+            where: {
+                city: city,
+                locality: locality,
+                latitude: Not(IsNull()),
+                longitude: Not(IsNull()),
+            },
+            take: random, // Ensure 'random' is a valid number
+        });
         if (existingListings.length > 0) {
             res.status(200).json({messgage:"Listings Found Successfully",total:existingListings.length,listings:existingListings});
             return;
@@ -259,6 +267,8 @@ export const getListings_Shortlisted = async (req: Request, res: Response): Prom
         const existingListings = await listingRepository
             .createQueryBuilder("listing")
             .where("listing.city = :city AND listing.locality = :locality", { city, locality })
+            .andWhere("listing.longitude IS NOT NULL")
+            .andWhere("listing.latitude IS NOT NULL")
             .orderBy("RANDOM()")
             .take(random) // Taking a random number of listings
             .getMany();
@@ -289,6 +299,8 @@ export const getListings_Agent = async (req: Request, res: Response): Promise<vo
         const agentListing = await listingRepository
             .createQueryBuilder("listing")
             .where("listing.city = :city AND listing.locality = :locality", { city, locality })
+            .andWhere("listing.longitude IS NOT NULL")
+            .andWhere("listing.latitude IS NOT NULL")
             .orderBy("RANDOM()")
             .take(random) // Taking a random number of listings
             .getMany();
