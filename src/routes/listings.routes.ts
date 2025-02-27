@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import { getListings,getListings_Shortlisted, getListings_Agent,updateListings,createListingFromJson } from "../controllers/listing.controller";
+import { getListings,searchInListings,getListings_Shortlisted, getListings_Agent,updateListings,createListingFromJson } from "../controllers/listing.controller";
 import { upload } from "../middlewares/multer.middelware"
 import { getListingById,getListings_withselectedfield } from "../controllers/listing.controller";
 
@@ -18,6 +18,7 @@ router.get("/getListings_withselectedfield",getListings_withselectedfield)
 router.get("/getListings_Shortlisted",getListings_Shortlisted)
 router.get("/getListings_Agent",getListings_Agent)
 router.get("/getListingbyId/:lstId",getListingById)
+router.get("/searchInlistings",searchInListings)
 
 router.post("/createListingFromJson",upload.single("listingFile"),createListingFromJson);
 
