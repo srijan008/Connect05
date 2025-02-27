@@ -228,13 +228,16 @@ export const createListingFromJson = async (req: Request, res: Response): Promis
 
 
 export const getListings_withselectedfield = async (req: Request, res: Response): Promise<void> => {
-    const { city, locality } = req.query;
+    const { city, locality} = req.query;
     
     if (!city || !locality) {
         res.status(400).json({ error: "City and locality are required" });
         return;
     }
     const random: number = getRandomInt(50,150);
+    const Limit = parseInt(req.query.limit as string) || 10;
+    const page = parseInt(req.query.page as string) || 1;
+    const offset = (page - 1) * Limit 
 
     try {
         const existingListings = await listingRepository.find({
@@ -244,7 +247,8 @@ export const getListings_withselectedfield = async (req: Request, res: Response)
                 latitude: Not(IsNull()),
                 longitude: Not(IsNull()),
             },
-            take: random, // Ensure 'random' is a valid number
+            take: Limit, // Ensure 'random' is a valid number,
+            skip: offset,
         });
         if (existingListings.length > 0) {
             res.status(200).json({messgage:"Listings Found Successfully",total:existingListings.length,listings:existingListings});
