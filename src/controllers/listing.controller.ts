@@ -234,7 +234,7 @@ export const getListings_withselectedfield = async (req: Request, res: Response)
         res.status(400).json({ error: "City and locality are required" });
         return;
     }
-    const random: number = getRandomInt(10,50);
+    const random: number = getRandomInt(50,150);
 
     try {
         const existingListings = await listingRepository.find({
