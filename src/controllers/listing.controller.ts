@@ -4,6 +4,7 @@ import axios from "axios";
 import ErrorHandler from "../utils/errorHandling";
 import fs from "fs";
 import { Not,IsNull } from "typeorm";
+import parsePrice from "../utils/priceCompare";
 
 function getRandomInt(a: number, b: number): number {
     return Math.floor(Math.random() * (b - a + 1)) + a;
@@ -36,6 +37,11 @@ interface ListingItem {
 interface HousingData {
     data: ListingItem[];
 }
+
+
+type SortByType = "createdAt" | "price";
+type OrderType = "ASC" | "DESC"| undefined;
+
 const API_SOURCES = [
     { 
         name: "NoBroker",
@@ -228,7 +234,7 @@ export const getListings_withselectedfield = async (req: Request, res: Response)
         res.status(400).json({ error: "City and locality are required" });
         return;
     }
-    const random: number = getRandomInt(10,50);
+    const random: number = getRandomInt(50,150);
 
     try {
         const existingListings = await listingRepository.find({
@@ -262,7 +268,6 @@ export const getListings_Shortlisted = async (req: Request, res: Response): Prom
    
 
     try {
-        const random: number = getRandomInt(7, 45);
 
         const existingListings = await listingRepository
             .createQueryBuilder("listing")
@@ -270,7 +275,7 @@ export const getListings_Shortlisted = async (req: Request, res: Response): Prom
             .andWhere("listing.longitude IS NOT NULL")
             .andWhere("listing.latitude IS NOT NULL")
             .orderBy("RANDOM()")
-            .take(random) // Taking a random number of listings
+            .take(30) // Taking a random number of listings
             .getMany();
 
             if (existingListings.length > 0) {
@@ -336,3 +341,59 @@ export const getListingById = async (req: Request, res: Response): Promise<void>
         ErrorHandler.handle(error, res);
     }
 };
+export const searchInListings = async (req: Request, res: Response): Promise<void> =>{
+    try {
+        const searchText: string = req.query.searchText as string;
+        const sortBy: string = (req.query.sortBy as string) || "createdAt"; // "price" or "createdAt"
+        const order:any = req.query.order as string || "DESC";
+        const limit: number = parseInt(req.query.limit as string) || 10;
+        const page: number = parseInt(req.query.page as string) || 1;
+
+        // Validations
+        if (!searchText) {
+            res.status(400).json({ error: "Search text is required" });
+            return;
+        }
+        if (searchText.length < 3) {
+            res.status(400).json({ message: "Search text length must be at least 3 characters" });
+            return;
+        }
+        if (!["ASC", "DESC"].includes(order)) {
+            res.status(400).json({ error: "Order should be either ASC or DESC" });
+            return;
+        }
+        if (limit < 1) {
+            res.status(400).json({ error: "Limit should be greater than 0" });
+            return;
+        }
+        if (page < 1) {
+            res.status(400).json({ error: "Page should be greater than 0" });
+            return;
+        }
+
+        const offset: number = (page - 1) * limit;
+        let query = listingRepository.createQueryBuilder("listing");
+
+        // Search filter
+        query.where(
+            "LOWER(listing.name) ILIKE LOWER(:searchText) OR LOWER(listing.locality) ILIKE LOWER(:searchText)",
+            { searchText: `%${searchText}%` }
+        );
+
+        // Sorting logic
+        query.orderBy(`listing.${sortBy}`, order.toUpperCase());
+        query.skip(offset).take(limit);
+
+        const listings = await query.getMany();
+
+        if (listings.length === 0) {
+            res.status(404).json({ message: "No match found" });
+            return;
+        }
+
+        res.json({ success: true, count: listings.length, data: listings });
+    } catch (error) {
+        ErrorHandler.handle(error, res);
+    }
+};
+
