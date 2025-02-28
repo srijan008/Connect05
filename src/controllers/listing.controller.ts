@@ -353,8 +353,6 @@ export const searchInListings = async (req: Request, res: Response): Promise<voi
         const sortBy: string = (req.query.sortBy as string) || "createdAt"; // "price" or "createdAt"
         const order: any = req.query.order as string || "DESC";
         const limit: number = parseInt(req.query.limit as string) || 10;
-        const searchlimit: number = parseInt(req.query.searchlimit as string) || 10;
-        const searchpage: number = parseInt(req.query.searchpage as string) || 1;
         const page: number = parseInt(req.query.page as string) || 1;
 
         if (!["ASC", "DESC"].includes(order)) {
@@ -369,12 +367,12 @@ export const searchInListings = async (req: Request, res: Response): Promise<voi
             res.status(400).json({ error: "Page should be greater than 0" });
             return;
         }
-
-        const offset_Search: number = (searchpage - 1) * searchlimit;
+    //    let offset: number;
+        // const offset_Search: number = (searchpage - 1) * searchlimit;
         const offset: number = (page - 1) * limit;
-
+        
         let query = listingRepository.createQueryBuilder("listing");
-
+        
         if (!searchText) {
             query = query
                 .where("listing.latitude IS NOT NULL")
@@ -387,7 +385,7 @@ export const searchInListings = async (req: Request, res: Response): Promise<voi
             if (locality && locality !== "" && locality !== null) {
                 query.andWhere("listing.locality = :locality", { locality });
             }
-            query = query.skip(offset).take(limit)
+            
         }
         else {
             // Search filter
@@ -398,13 +396,13 @@ export const searchInListings = async (req: Request, res: Response): Promise<voi
 
             // Sorting logic
             query.orderBy(`listing.${sortBy}`, order.toUpperCase());
-            query.skip(offset_Search).take(searchlimit);
         }
-
+        
+        query.skip(offset).take(limit);
         const listings = await query.getMany();
 
         if (listings.length === 0) {
-            res.status(404).json({ message: "No match found" });
+            res.status(205).json({ message: "No match found" });
             return;
         }
 
