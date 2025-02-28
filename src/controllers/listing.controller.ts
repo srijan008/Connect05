@@ -3,7 +3,7 @@ import { listingRepository } from "../db/schemas.db";
 import axios from "axios";
 import ErrorHandler from "../utils/errorHandling";
 import fs from "fs";
-import { Not,IsNull } from "typeorm";
+import { Not, IsNull } from "typeorm";
 import parsePrice from "../utils/priceCompare";
 
 function getRandomInt(a: number, b: number): number {
@@ -40,10 +40,10 @@ interface HousingData {
 
 
 type SortByType = "createdAt" | "price";
-type OrderType = "ASC" | "DESC"| undefined;
+type OrderType = "ASC" | "DESC" | undefined;
 
 const API_SOURCES = [
-    { 
+    {
         name: "NoBroker",
         url: (city: string, locality: string) => `https://0841-35-227-2-130.ngrok-free.app/nobroker?city=${city}&locality=${locality}&page=1`,
         mapData: (response: any, city: string, locality: string): ListingItem[] => response.data && Array.isArray(response.data.data) ? response.data.data.map((item: any) => ({
@@ -71,7 +71,7 @@ const API_SOURCES = [
             source: "NoBroker"
         })) : []
     },
-    { 
+    {
         name: "Housing",
         url: (city: string, locality: string) => `https://0841-35-227-2-130.ngrok-free.app/housing?city=${city}&locality=${locality}&page=1`,
         mapData: (response: any, city: string, locality: string): ListingItem[] => response.data && Array.isArray(response.data.data) ? response.data.data.map((item: any) => ({
@@ -99,7 +99,7 @@ const API_SOURCES = [
             source: "Housing"
         })) : []
     },
-    { 
+    {
         name: "SquareYard",
         url: (city: string, locality: string) => `https://0841-35-227-2-130.ngrok-free.app/squareyard?city=${city}&locality=${locality}&page=1`,
         mapData: (response: any, city: string, locality: string): ListingItem[] => response.data && Array.isArray(response.data.data) ? response.data.data.map((item: any) => ({
@@ -199,7 +199,7 @@ export const createListingFromJson = async (req: Request, res: Response): Promis
             return;
         }
 
-        const housingData : HousingData = require(file.path);
+        const housingData: HousingData = require(file.path);
 
         // Assuming listingRepository is already defined and connected to your database
         const housing = await Promise.all(
@@ -207,19 +207,20 @@ export const createListingFromJson = async (req: Request, res: Response): Promis
                 return listingRepository.save(item);
             })
         );
-        
+
         // Delete the file after processing
         fs.unlinkSync(file.path);
 
-      if(housing.length > 0){
-        res.json({ message: "Listings added successfully",Total_Listing_added:housing.length});
-        return ;}
+        if (housing.length > 0) {
+            res.json({ message: "Listings added successfully", Total_Listing_added: housing.length });
+            return;
+        }
 
 
         res.status(400).json({ error: "Error adding listings" });
         return;
 
-        
+
     } catch (error) {
         ErrorHandler.handle(error, res);
         return;
@@ -228,16 +229,16 @@ export const createListingFromJson = async (req: Request, res: Response): Promis
 
 
 export const getListings_withselectedfield = async (req: Request, res: Response): Promise<void> => {
-    const { city, locality} = req.query;
-    
+    const { city, locality } = req.query;
+
     if (!city || !locality) {
         res.status(400).json({ error: "City and locality are required" });
         return;
     }
-    const random: number = getRandomInt(50,150);
+    const random: number = getRandomInt(50, 150);
     const Limit = parseInt(req.query.limit as string) || 10;
     const page = parseInt(req.query.page as string) || 1;
-    const offset = (page - 1) * Limit 
+    const offset = (page - 1) * Limit
 
     try {
         const existingListings = await listingRepository.find({
@@ -251,11 +252,11 @@ export const getListings_withselectedfield = async (req: Request, res: Response)
             skip: offset,
         });
         if (existingListings.length > 0) {
-            res.status(200).json({messgage:"Listings Found Successfully",total:existingListings.length,listings:existingListings});
+            res.status(200).json({ messgage: "Listings Found Successfully", total: existingListings.length, listings: existingListings });
             return;
         }
         res.status(400).json({ error: "No data found" });
-       return 
+        return
     } catch (error) {
         ErrorHandler.handle(error, res);
     }
@@ -269,7 +270,7 @@ export const getListings_Shortlisted = async (req: Request, res: Response): Prom
         return;
     }
 
-   
+
 
     try {
 
@@ -282,12 +283,12 @@ export const getListings_Shortlisted = async (req: Request, res: Response): Prom
             .take(30) // Taking a random number of listings
             .getMany();
 
-            if (existingListings.length > 0) {
-                res.status(200).json({messgage:"Listings Found Successfully",total:existingListings.length,listings:existingListings});
-                return;
-            }
-            res.status(400).json({ error: "No data found" });
-            return 
+        if (existingListings.length > 0) {
+            res.status(200).json({ messgage: "Listings Found Successfully", total: existingListings.length, listings: existingListings });
+            return;
+        }
+        res.status(400).json({ error: "No data found" });
+        return
     } catch (error) {
         ErrorHandler.handle(error, res);
     }
@@ -301,9 +302,9 @@ export const getListings_Agent = async (req: Request, res: Response): Promise<vo
         return;
     }
 
- 
+
     try {
-        const random: number = getRandomInt(3,10);
+        const random: number = getRandomInt(3, 10);
 
         const agentListing = await listingRepository
             .createQueryBuilder("listing")
@@ -314,12 +315,12 @@ export const getListings_Agent = async (req: Request, res: Response): Promise<vo
             .take(random) // Taking a random number of listings
             .getMany();
 
-            if (agentListing.length > 0) {
-                res.status(200).json({messgage:"Listings Found Successfully",total:agentListing.length,listings:agentListing});
-                return;
-            }
-            res.status(400).json({ error: "No data found" });
-            return 
+        if (agentListing.length > 0) {
+            res.status(200).json({ messgage: "Listings Found Successfully", total: agentListing.length, listings: agentListing });
+            return;
+        }
+        res.status(400).json({ error: "No data found" });
+        return
     } catch (error) {
         ErrorHandler.handle(error, res);
     }
@@ -333,35 +334,29 @@ export const getListingById = async (req: Request, res: Response): Promise<void>
         return;
     }
     try {
-        const Listing = await listingRepository.find({ where: { lstId}});
+        const Listing = await listingRepository.find({ where: { lstId } });
         if (Listing.length > 0) {
-            res.status(200).json({message:"Listing details found",Listing});
+            res.status(200).json({ message: "Listing details found", Listing });
             return;
         }
-        
+
         res.status(401).json("No data found");
         return;
     } catch (error) {
         ErrorHandler.handle(error, res);
     }
 };
-export const searchInListings = async (req: Request, res: Response): Promise<void> =>{
+export const searchInListings = async (req: Request, res: Response): Promise<void> => {
     try {
-        const searchText: string = req.query.searchText as string;
+        const { city, locality } = req.query;
+        const searchText: string = req.query.searchText as string || "";
         const sortBy: string = (req.query.sortBy as string) || "createdAt"; // "price" or "createdAt"
-        const order:any = req.query.order as string || "DESC";
+        const order: any = req.query.order as string || "DESC";
         const limit: number = parseInt(req.query.limit as string) || 10;
+        const searchlimit: number = parseInt(req.query.searchlimit as string) || 10;
+        const searchpage: number = parseInt(req.query.searchpage as string) || 1;
         const page: number = parseInt(req.query.page as string) || 1;
 
-        // Validations
-        if (!searchText) {
-            res.status(400).json({ error: "Search text is required" });
-            return;
-        }
-        if (searchText.length < 3) {
-            res.status(400).json({ message: "Search text length must be at least 3 characters" });
-            return;
-        }
         if (!["ASC", "DESC"].includes(order)) {
             res.status(400).json({ error: "Order should be either ASC or DESC" });
             return;
@@ -375,18 +370,36 @@ export const searchInListings = async (req: Request, res: Response): Promise<voi
             return;
         }
 
+        const offset_Search: number = (searchpage - 1) * searchlimit;
         const offset: number = (page - 1) * limit;
+
         let query = listingRepository.createQueryBuilder("listing");
 
-        // Search filter
-        query.where(
-            "LOWER(listing.name) ILIKE LOWER(:searchText) OR LOWER(listing.locality) ILIKE LOWER(:searchText)",
-            { searchText: `%${searchText}%` }
-        );
+        if (!searchText) {
+            query = query
+                .where("listing.latitude IS NOT NULL")
+                .andWhere("listing.longitude IS NOT NULL");
 
-        // Sorting logic
-        query.orderBy(`listing.${sortBy}`, order.toUpperCase());
-        query.skip(offset).take(limit);
+            if (city && city !== "" && city !== null) {
+                query.andWhere("listing.city = :city", { city });
+            }
+
+            if (locality && locality !== "" && locality !== null) {
+                query.andWhere("listing.locality = :locality", { locality });
+            }
+            query = query.skip(offset).take(limit)
+        }
+        else {
+            // Search filter
+            query.where(
+                "LOWER(listing.name) ILIKE LOWER(:searchText) OR LOWER(listing.locality) ILIKE LOWER(:searchText)",
+                { searchText: `%${searchText}%` }
+            );
+
+            // Sorting logic
+            query.orderBy(`listing.${sortBy}`, order.toUpperCase());
+            query.skip(offset_Search).take(searchlimit);
+        }
 
         const listings = await query.getMany();
 
