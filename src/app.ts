@@ -33,7 +33,7 @@ import listingRoutes from './routes/listings.routes';
 app.use('/api/listings', listingRoutes);
 
 import waitlistRoutes from './routes/waitlist.routes';
-app.use('/api/waitlist', waitlistRoutes);
+app.use('/api/waitlist', waitlistRoutes); 
 
 import counterRoutes from './routes/counter.routes';
 app.use('/api/counter', counterRoutes);
